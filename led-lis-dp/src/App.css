@@ -1,0 +1,247 @@
+/* ============================================================
+   App.css — Max LED Lighting DP Visualiser
+   Dark circuit-board theme.
+   ============================================================ */
+
+/* ---------- CSS reset + base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0d1117;
+  --surface:     #161b22;
+  --surface2:    #1c2331;
+  --border:      #30363d;
+  --text:        #c9d1d9;
+  --text-dim:    #8b949e;
+  --accent:      #58a6ff;
+  --gold:        #ffd700;
+  --green:       #3fb950;
+  --red:         #f85149;
+  --radius:      10px;
+  --shadow:      0 4px 16px rgba(0,0,0,.5);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ---------- App shell ---------- */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+/* ---------- Header ---------- */
+.app-header {
+  text-align: center;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.app-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: .04em;
+  text-shadow: 0 0 20px rgba(255,215,0,.35);
+}
+.subtitle { color: var(--text-dim); margin-top: 6px; font-size: 13px; }
+.subtitle.small { font-size: 11px; }
+
+/* ---------- Layout grid ---------- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+.left-col, .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+/* ---------- Input Panel ---------- */
+.input-panel .field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.input-panel .field-row.col { flex-direction: column; align-items: flex-start; }
+.input-panel label { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
+
+.input-panel input[type="number"] {
+  width: 80px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.input-panel textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+.input-panel input:focus, .input-panel textarea:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+
+.error-msg { color: var(--red); font-size: 12px; margin-bottom: 10px; }
+
+.btn-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+
+/* Buttons */
+.btn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity .15s, box-shadow .15s;
+}
+.btn:hover { opacity: .85; }
+.btn.primary  { background: var(--accent);  color: #0d1117; }
+.btn.secondary{ background: var(--surface2); color: var(--text); border-color: var(--border); }
+.btn.preset   { background: var(--surface2); color: var(--text-dim); border-color: var(--border);
+                font-size: 11px; padding: 5px 10px; }
+
+.presets-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+.preset-btns   { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Result Panel ---------- */
+.answer-box {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface2); border-radius: 8px; padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.answer-label { font-size: 14px; color: var(--text-dim); }
+.answer-value {
+  font-size: 2.4rem; font-weight: 700; color: var(--gold);
+  text-shadow: 0 0 14px rgba(255,215,0,.5);
+}
+
+.chosen-section { margin-bottom: 14px; }
+.chosen-section p { font-size: 13px; margin-bottom: 8px; }
+.led-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.led-chip {
+  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1px solid transparent;
+}
+.led-chip.chosen { background: #1c3a1c; color: var(--green); border-color: var(--green); }
+
+.small-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.small-note.warn { color: #e8a62a; }
+
+/* Trace (expandable) */
+.trace-details {
+  background: var(--surface2); border-radius: 8px;
+  border: 1px solid var(--border); margin-bottom: 12px;
+}
+.trace-details summary {
+  padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--accent);
+  user-select: none;
+}
+.trace-details summary:hover { color: #79bfff; }
+.trace-body { padding: 12px 16px; font-size: 12px; line-height: 1.7; }
+.trace-body ol { padding-left: 18px; }
+.trace-body li { margin-bottom: 4px; }
+.trace-body ul { margin: 4px 0 4px 16px; }
+.backtrack-section { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.backtrack-section ol { padding-left: 18px; margin-top: 6px; }
+.backtrack-section code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+
+.complexity-box {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  font-size: 12px; color: var(--text-dim);
+  background: var(--surface2); border-radius: 8px; padding: 10px 14px;
+}
+
+/* ---------- DP Table ---------- */
+.recurrence-box {
+  background: var(--surface2); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 12px 14px; margin-bottom: 14px;
+}
+.recurrence-box code {
+  display: block; font-size: 12px; font-family: monospace;
+  color: var(--gold); margin: 6px 0;
+}
+
+.table-wrapper { overflow-x: auto; }
+
+.dp-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.dp-table th {
+  background: var(--surface2); color: var(--accent);
+  padding: 8px 10px; text-align: left; white-space: nowrap;
+  border-bottom: 2px solid var(--border);
+}
+.dp-table td {
+  padding: 7px 10px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.dp-table tbody tr:hover { background: rgba(88,166,255,.06); }
+.dp-table .row-chosen { background: rgba(63,185,80,.12) !important; }
+.dp-table .row-chosen td { color: var(--green); }
+
+.dp-table .led-val  { font-weight: 700; color: var(--gold); }
+.dp-table .dp-val   { font-weight: 700; color: var(--accent); }
+.dp-table .parent-val { color: var(--text-dim); }
+.dp-table .explanation { color: var(--text-dim); font-size: 11px; line-height: 1.5; }
+
+.table-footer { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+.hl-green { color: var(--green); font-weight: 600; }
+
+/* ---------- Circuit Board ---------- */
+.circuit-board h2 { margin-bottom: 6px; }
+.board-headers { margin-bottom: 4px; }
+.board-label { font-size: 12px; font-weight: 600; color: var(--accent); }
+
+.wire-legend {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin-top: 12px; font-size: 11px; color: var(--text-dim); align-items: center;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- Footer ---------- */
+.app-footer {
+  text-align: center; padding: 20px 0 8px;
+  color: var(--text-dim); font-size: 11px;
+  border-top: 1px solid var(--border); margin-top: 24px;
+}
