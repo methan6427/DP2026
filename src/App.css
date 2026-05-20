@@ -1,398 +1,437 @@
-/* ============================================================
-   App.css — Max LED Lighting DP Visualiser
-   Dark circuit-board theme.
-   ============================================================ */
-
-/* ---------- CSS reset + base ---------- */
+/* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Color variables ────────────────────────────────────────── */
 :root {
-  --bg:          #0d1117;
-  --surface:     #161b22;
-  --surface2:    #1c2331;
-  --border:      #30363d;
-  --text:        #c9d1d9;
-  --text-dim:    #8b949e;
-  --accent:      #58a6ff;
-  --gold:        #ffd700;
-  --green:       #3fb950;
-  --red:         #f85149;
-  --radius:      10px;
-  --shadow:      0 4px 16px rgba(0,0,0,.5);
+  --bg:       #0d1117;
+  --surface:  #161b22;
+  --surface2: #1c2331;
+  --border:   #30363d;
+  --text:     #c9d1d9;
+  --text-dim: #8b949e;
+  --accent:   #58a6ff;
+  --gold:     #ffd700;
+  --green:    #3fb950;
+  --red:      #f85149;
+  --radius:   8px;
+  --shadow:   0 2px 8px rgba(0,0,0,.4);
 }
 
-body {
+/* ── Base — no page scroll by default (small n) ─────────────── */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  min-height: 100vh;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-/* ---------- App shell ---------- */
+/* Allow vertical scroll when n > 10 (large mode) */
+body.large-mode {
+  overflow: auto;
+}
+
+/* ── React root ──────────────────────────────────────────────── */
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body.large-mode #root {
+  height: auto;
+  overflow: visible;
+}
+
+/* ── Top-level shell ─────────────────────────────────────────── */
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 16px 32px;
+  height: 100%;
+  overflow: hidden;
+}
+body.large-mode .app-container {
+  height: auto;
+  overflow: visible;
 }
 
-/* ---------- Header ---------- */
-.app-header {
-  text-align: center;
-  padding: 28px 0 20px;
+/* ── Page header — compact bar at the top ───────────────────── */
+.page-header {
+  flex-shrink: 0;
+  height: 52px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-.app-header h1 {
-  font-size: 2rem;
+.page-title {
+  font-size: 18px;
   font-weight: 700;
   color: var(--gold);
-  letter-spacing: .04em;
-  text-shadow: 0 0 20px rgba(255,215,0,.35);
+  text-shadow: 0 0 14px rgba(255,215,0,.3);
+  white-space: nowrap;
 }
-.subtitle { color: var(--text-dim); margin-top: 6px; font-size: 13px; }
-.subtitle.small { font-size: 11px; }
+.page-subtitle {
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+}
 
-/* ---------- Layout grid ---------- */
-.main-grid {
+/* ── SMALL LAYOUT (n ≤ 10) — 3-column CSS Grid ──────────────── */
+.main-layout {
+  flex: 1;
   display: grid;
-  grid-template-columns: 400px 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: 240px 1fr 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "left table circuit";
+  gap: 10px;
+  padding: 8px 10px 10px;
+  height: 100%;
+  overflow: hidden;
+  min-height: 0;
 }
-@media (max-width: 960px) {
-  .main-grid { grid-template-columns: 1fr; }
-}
-.left-col, .right-col { display: flex; flex-direction: column; gap: 20px; }
 
-/* ---------- Cards ---------- */
+/* ── LARGE LAYOUT (n > 10) — single stacked column ─────────── */
+.main-layout.large {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  overflow: visible;
+}
+
+/* ── Left column ─────────────────────────────────────────────── */
+.left-col {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* In large mode: input and result sit side by side */
+.main-layout.large .left-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  overflow: visible;
+}
+
+/* Input panel never shrinks in small mode */
+.input-panel {
+  flex-shrink: 0;
+}
+
+/* Result panel fills remaining left-column height and scrolls if needed */
+.result-panel {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.main-layout.large .result-panel {
+  flex: unset;
+  overflow-y: visible;
+}
+
+/* ── LIS table column ────────────────────────────────────────── */
+.lis-table-section {
+  grid-area: table;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+.main-layout.large .lis-table-section {
+  width: 100%;
+  overflow-x: auto;
+  height: auto;
+}
+
+/* ── Circuit board column ────────────────────────────────────── */
+.circuit-wrapper {
+  grid-area: circuit;
+  overflow: hidden;
+  min-height: 0;
+}
+.main-layout.large .circuit-wrapper {
+  width: 100%;
+  height: 320px;
+}
+
+/* ── Shared card style ──────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 10px 14px;
   box-shadow: var(--shadow);
 }
 .card h2 {
-  font-size: 1rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--accent);
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
+  padding-bottom: 5px;
 }
 
-/* ---------- Input Panel ---------- */
+/* LIS table card — flex column so table-wrapper can grow to fill height */
+.lis-table-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.lis-table-card h2 { color: var(--green); flex-shrink: 0; }
+
+/* ── Input panel ────────────────────────────────────────────── */
 .input-panel .field-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .input-panel .field-row.col { flex-direction: column; align-items: flex-start; }
-.input-panel label { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
+.input-panel label { color: var(--text-dim); font-size: 12px; white-space: nowrap; }
 
 .input-panel input[type="number"] {
-  width: 80px;
+  width: 70px;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 5px;
   color: var(--text);
-  padding: 6px 8px;
-  font-size: 14px;
+  padding: 4px 6px;
+  font-size: 13px;
 }
 .input-panel textarea {
   width: 100%;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 5px;
   color: var(--text);
-  padding: 8px;
+  padding: 6px;
   font-family: monospace;
-  font-size: 13px;
-  resize: vertical;
+  font-size: 12px;
+  resize: none;
 }
-.input-panel input:focus, .input-panel textarea:focus {
+.input-panel input:focus,
+.input-panel textarea:focus {
   outline: 2px solid var(--accent);
   border-color: transparent;
 }
 
-.error-msg { color: var(--red); font-size: 12px; margin-bottom: 10px; }
+.error-msg { color: var(--red); font-size: 11px; margin-bottom: 6px; }
 
-.btn-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.btn-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 
-/* Buttons */
+/* Button variants */
 .btn {
-  padding: 7px 16px;
-  border-radius: 6px;
+  padding: 5px 12px;
+  border-radius: 5px;
   border: 1px solid transparent;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  transition: opacity .15s, box-shadow .15s;
+  transition: opacity .15s;
 }
-.btn:hover { opacity: .85; }
-.btn.primary  { background: var(--accent);  color: #0d1117; }
-.btn.secondary{ background: var(--surface2); color: var(--text); border-color: var(--border); }
-.btn.preset   { background: var(--surface2); color: var(--text-dim); border-color: var(--border);
-                font-size: 11px; padding: 5px 10px; }
+.btn:hover { opacity: .82; }
+.btn.primary   { background: var(--accent); color: #0d1117; }
+.btn.secondary { background: var(--surface2); color: var(--text); border-color: var(--border); }
+.btn.preset    { background: var(--surface2); color: var(--text-dim); border-color: var(--border);
+                 font-size: 10px; padding: 3px 8px; }
 
-.presets-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
-.preset-btns   { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.preset-btns   { display: flex; flex-wrap: wrap; gap: 4px; }
 
-/* ---------- Result Panel ---------- */
+/* ── Result panel ───────────────────────────────────────────── */
 .answer-box {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--surface2); border-radius: 8px; padding: 14px 18px;
-  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
 }
-.answer-label { font-size: 14px; color: var(--text-dim); }
+.answer-label { font-size: 12px; color: var(--text-dim); }
 .answer-value {
-  font-size: 2.4rem; font-weight: 700; color: var(--gold);
-  text-shadow: 0 0 14px rgba(255,215,0,.5);
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(255,215,0,.5);
 }
 
-.chosen-section { margin-bottom: 14px; }
-.chosen-section p { font-size: 13px; margin-bottom: 8px; }
-.led-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chosen-section p { font-size: 12px; margin-bottom: 6px; }
+.led-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .led-chip {
-  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
   border: 1px solid transparent;
 }
 .led-chip.chosen { background: #1c3a1c; color: var(--green); border-color: var(--green); }
 
-.small-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
-.small-note.warn { color: #e8a62a; }
-
-/* Trace (expandable) */
-.trace-details {
-  background: var(--surface2); border-radius: 8px;
-  border: 1px solid var(--border); margin-bottom: 12px;
-}
-.trace-details summary {
-  padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--accent);
-  user-select: none;
-}
-.trace-details summary:hover { color: #79bfff; }
-.trace-body { padding: 12px 16px; font-size: 12px; line-height: 1.7; }
-.trace-body ol { padding-left: 18px; }
-.trace-body li { margin-bottom: 4px; }
-.trace-body ul { margin: 4px 0 4px 16px; }
-.backtrack-section { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
-.backtrack-section ol { padding-left: 18px; margin-top: 6px; }
-.backtrack-section code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
-
-.complexity-box {
-  display: flex; flex-wrap: wrap; gap: 12px;
-  font-size: 12px; color: var(--text-dim);
-  background: var(--surface2); border-radius: 8px; padding: 10px 14px;
-}
-
-/* ---------- DP Table ---------- */
-.recurrence-box {
-  background: var(--surface2); border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0; padding: 12px 14px; margin-bottom: 14px;
-}
-.recurrence-box code {
-  display: block; font-size: 12px; font-family: monospace;
-  color: var(--gold); margin: 6px 0;
-}
-
-.table-wrapper { overflow-x: auto; }
-
-.dp-table {
-  width: 100%; border-collapse: collapse; font-size: 12px;
-}
-.dp-table th {
-  background: var(--surface2); color: var(--accent);
-  padding: 8px 10px; text-align: left; white-space: nowrap;
-  border-bottom: 2px solid var(--border);
-}
-.dp-table td {
-  padding: 7px 10px; border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-.dp-table tbody tr:hover { background: rgba(88,166,255,.06); }
-.dp-table .row-chosen { background: rgba(63,185,80,.12) !important; }
-.dp-table .row-chosen td { color: var(--green); }
-
-.dp-table .led-val  { font-weight: 700; color: var(--gold); }
-.dp-table .dp-val   { font-weight: 700; color: var(--accent); }
-.dp-table .parent-val { color: var(--text-dim); }
-.dp-table .explanation { color: var(--text-dim); font-size: 11px; line-height: 1.5; }
-
-.table-footer { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
-.hl-green { color: var(--green); font-weight: 600; }
-
-/* ---------- Circuit Board ---------- */
-.circuit-board h2 { margin-bottom: 6px; }
-.board-headers { margin-bottom: 4px; }
-.board-label { font-size: 12px; font-weight: 600; color: var(--accent); }
-
-.wire-legend {
-  display: flex; flex-wrap: wrap; gap: 16px;
-  margin-top: 12px; font-size: 11px; color: var(--text-dim); align-items: center;
-}
-.legend-item { display: flex; align-items: center; gap: 6px; }
-
-/* ---------- LCS match badge ---------- */
-.lcs-match-badge {
-  background: rgba(63,185,80,.12);
-  border: 1px solid var(--green);
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
-  color: var(--green);
-  text-align: center;
-}
-
-/* ---------- Section divider ---------- */
-.section-divider {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-dim);
-  position: relative;
-  padding: 6px 0;
-}
-.section-divider::before, .section-divider::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 28%;
-  height: 1px;
-  background: var(--border);
-}
-.section-divider::before { left: 0; }
-.section-divider::after  { right: 0; }
-
-/* ---------- DPTable header note ---------- */
-.dp-lis-note {
+/* ── LIS table card ─────────────────────────────────────────── */
+.lis-context-box {
+  flex-shrink: 0;
   background: var(--surface2);
-  border-left: 3px solid var(--gold);
-  border-radius: 0 8px 8px 0;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-/* Board S source column */
-.dp-table .src-val { color: #9ecbff; font-size: 11px; }
-
-/* ---------- LCS Table section ---------- */
-.lcs-table-section.card h2 { color: var(--green); }
-
-.lcs-context-box {
-  background: var(--surface2);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 14px;
-  font-size: 13px;
-}
-.lcs-context-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-.lcs-context-row:last-child { margin-bottom: 0; }
-.lcs-context-label {
-  color: var(--text-dim);
-  font-size: 12px;
-  white-space: nowrap;
-  min-width: 130px;
-}
-.lcs-context-vals { font-family: monospace; color: var(--accent); }
-.lcs-result-row   { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border); }
-.lcs-sequence-val { font-family: monospace; color: var(--green); font-weight: 600; }
-
-/* Cell colour legend */
-.lcs-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
   font-size: 11px;
 }
-.lcs-legend-item {
-  padding: 3px 10px;
+.lis-context-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.lis-context-row:last-child { margin-bottom: 0; }
+.lis-context-label {
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+  min-width: 110px;
+}
+.lis-context-vals { font-family: monospace; color: var(--accent); font-size: 11px; }
+.lis-result-row   { margin-top: 3px; padding-top: 6px; border-top: 1px solid var(--border); }
+.lis-sequence-val { font-family: monospace; color: var(--green); font-weight: 600; }
+
+/* Recurrence formula box */
+.recurrence-box {
+  flex-shrink: 0;
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.recurrence-box strong { font-size: 11px; color: var(--text); }
+.recurrence-box code {
+  display: block;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--gold);
+  margin: 4px 0;
+}
+
+/* Cell colour legend */
+.lis-legend {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 10px;
+}
+.lis-legend-item {
+  padding: 2px 8px;
   border-radius: 20px;
   border: 1px solid transparent;
 }
-.lcs-legend-path  { background: rgba(255,215,0,.15);  border-color: var(--gold);  color: var(--gold); }
-.lcs-legend-match { background: rgba(63,185,80,.12);  border-color: var(--green); color: var(--green); }
-.lcs-legend-arrow { color: var(--text-dim); border-color: var(--border); }
+.lis-legend-path  { background: rgba(255,215,0,.15); border-color: var(--gold);  color: var(--gold); }
+.lis-legend-match { background: rgba(63,185,80,.12);  border-color: var(--green); color: var(--green); }
+.lis-legend-arrow { color: var(--text-dim); border-color: var(--border); }
 
-/* The LCS table itself */
-.lcs-table {
-  border-collapse: collapse;
-  font-size: 12px;
+/* The LIS dp table — fills available height */
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
 }
-.lcs-table th, .lcs-table td {
+.lis-table {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.lis-table th,
+.lis-table td {
   border: 1px solid var(--border);
   text-align: center;
   padding: 0;
-  min-width: 42px;
-  height: 42px;
-}
-.lcs-th-corner { background: var(--bg); }
-.lcs-th-y {
-  background: var(--surface2);
-  color: var(--accent);
-  font-size: 11px;
-  padding: 4px 6px;
-}
-.lcs-th-x {
-  background: var(--surface2);
-  color: var(--gold);
-  font-weight: 700;
-  font-size: 12px;
-  padding: 4px 8px;
-}
-
-/* Regular cell */
-.lcs-cell {
-  position: relative;
+  min-width: 28px;
+  height: auto;
   vertical-align: middle;
 }
-.lcs-cell-val {
+.lis-table tbody { height: 100%; }
+.lis-table tbody tr { height: 1%; }
+.lis-th-corner { background: var(--bg); }
+.lis-th-y { background: var(--surface2); color: var(--accent); }
+.lis-th-x { background: var(--surface2); color: var(--gold); font-weight: 700; }
+.lis-th-x,
+.lis-th-y,
+.lis-th-corner { font-size: clamp(9px, 1.2vw, 15px); padding: 2px 4px; }
+
+/* Regular cell */
+.lis-cell {
+  position: relative;
+  vertical-align: middle;
+  font-size: clamp(10px, 1.4vw, 18px);
+  font-weight: 600;
+}
+.lis-cell-val {
   display: block;
-  font-weight: 700;
-  font-size: 13px;
   color: var(--text);
   line-height: 1;
 }
-.lcs-cell-arrow {
+.lis-cell-arrow {
   position: absolute;
   top: 2px;
   left: 3px;
-  font-size: 9px;
+  font-size: clamp(7px, 0.8vw, 11px);
   color: var(--text-dim);
+  opacity: 0.75;
   line-height: 1;
 }
 
-/* Path cells — gold highlight */
-.lcs-cell-path {
-  background: rgba(255,215,0,.18) !important;
-}
-.lcs-cell-path .lcs-cell-val  { color: var(--gold); }
-.lcs-cell-path .lcs-cell-arrow { color: var(--gold); }
+/* Gold cells on the backtrack path */
+.lis-cell-path { background: rgba(255,215,0,.18) !important; }
+.lis-cell-path .lis-cell-val   { color: var(--gold); }
+.lis-cell-path .lis-cell-arrow { color: var(--gold); }
 
-/* Match cells — green highlight (not on path) */
-.lcs-cell-match {
-  background: rgba(63,185,80,.10);
-}
-.lcs-cell-match .lcs-cell-val { color: var(--green); }
+/* Green cells where L[i] == sorted(L)[j] (match) */
+.lis-cell-match { background: rgba(63,185,80,.10); }
+.lis-cell-match .lis-cell-val { color: var(--green); }
 
-.lcs-space-note { margin-top: 14px; }
-
-/* ---------- Footer ---------- */
-.app-footer {
-  text-align: center; padding: 20px 0 8px;
-  color: var(--text-dim); font-size: 11px;
-  border-top: 1px solid var(--border); margin-top: 24px;
+/* ── Circuit board card ──────────────────────────────────────── */
+.circuit-board {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+/* SVG fills the remaining space inside the flex column */
+.circuit-board svg {
+  flex: 1;
+  min-height: 0;
+  display: block;
+}
+.circuit-board h2 { margin-bottom: 4px; }
+.board-headers { margin-bottom: 2px; }
+.board-label { font-size: 11px; font-weight: 600; color: var(--accent); }
+
+.wire-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+  align-items: center;
+  flex-shrink: 0;
+}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+
+/* ── Misc utility ────────────────────────────────────────────── */
+.small-note { font-size: 10px; color: var(--text-dim); margin-top: 3px; }
