@@ -128,7 +128,25 @@ const DPTable: React.FC<Props> = ({ result }) => {
   // ----------------------------------------------------------
   return (
     <div className="dp-table-section card">
-      <h2>DP Table</h2>
+      <h2>DP Table — Direct LIS Formulation</h2>
+
+      {/*
+        ---- Header note ----
+        This banner explains the relationship between the LCS table above
+        and this direct LIS table, so the instructor sees both formulations
+        are equivalent.
+
+        Per COM336 Chapter 2: the DP approach for LIS follows the same
+        four steps as the general DP strategy (Characterize, Recurrence,
+        Compute, Find optimal) — applied directly to the LED permutation
+        without going through LCS.
+      */}
+      <div className="dp-lis-note">
+        <strong>Direct LIS formulation</strong> — mathematically equivalent
+        to LCS(L, sorted(L)) shown above.
+        &nbsp;dp[i] = length of longest non-crossing chain ending at position i.
+        &nbsp;Both tables must produce the same answer.
+      </div>
 
       {/* ---- Recurrence formula box ---- */}
       <div className="recurrence-box">
@@ -153,6 +171,13 @@ const DPTable: React.FC<Props> = ({ result }) => {
             <tr>
               <th>Index&nbsp;i</th>
               <th>LED value&nbsp;L[i]</th>
+              {/*
+                Board S source column — reinforces the physical meaning:
+                LED with label L[i] MUST connect to Source L[i] on board S.
+                So "Board S source" is always the same value as "LED value L[i]".
+                Showing it explicitly makes the wire-matching constraint visible.
+              */}
+              <th>Board&nbsp;S&nbsp;source</th>
               <th>dp[i]</th>
               <th>parent[i]</th>
               <th>How dp[i] was computed</th>
@@ -254,6 +279,14 @@ const DPTable: React.FC<Props> = ({ result }) => {
 
                   {/* The LED label (its value from the input permutation) */}
                   <td className="led-val">{val}</td>
+
+                  {/*
+                    Board S source — the source this LED's wire ends at.
+                    LED label = source label (by problem definition),
+                    so this column is always equal to the LED value.
+                    Shown separately to make the physical connection explicit.
+                  */}
+                  <td className="src-val">S{val}</td>
 
                   {/* The DP value — the core result of the algorithm */}
                   <td className="dp-val">{dp[i]}</td>

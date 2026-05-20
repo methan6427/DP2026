@@ -14,7 +14,10 @@
 //   <header>      – project title and course info
 //   <InputPanel>  – user enters n and the LED permutation
 //   <ResultPanel> – shows max LEDs, chosen set, step-by-step trace
-//   <DPTable>     – the required DP table with per-cell explanations
+//   [LCS badge]   – verifies LCS length == LIS maxLEDs
+//   <LCSTable>    – full LCS(L, sorted(L)) table (lecture approach)
+//   [Divider]     – separates LCS formulation from direct LIS
+//   <DPTable>     – direct LIS DP table with per-cell explanations
 //   <CircuitBoard>– SVG drawing of both boards with wires
 // ============================================================
 
@@ -38,8 +41,9 @@ import InputPanel   from "./components/InputPanel";
 import DPTable      from "./components/DPTable";
 import ResultPanel  from "./components/ResultPanel";
 import CircuitBoard from "./components/CircuitBoard";
-import { computeLIS } from "./utils/lis";
-import type { LISResult } from "./types";
+import LCSTable     from "./components/LCSTable";
+import { computeLIS, computeLCS } from "./utils/lis";
+import type { LISResult, LCSResult } from "./types";
 import "./App.css";   // The CSS file that styles the whole app.
 
 // ------------------------------------------------------------
@@ -91,7 +95,19 @@ const App: React.FC = () => {
   //   to say "no value". We check for null before showing the output
   //   panels (see the JSX below).
   // ----------------------------------------------------------
-  const [result, setResult] = useState<LISResult | null>(null);
+  const [result,    setResult]    = useState<LISResult | null>(null);
+
+  // ----------------------------------------------------------
+  // lcsResult — stores LCS(L, sorted(L)) computed alongside LIS.
+  //
+  // Per COM336 Chapter 2: LIS(L) = LCS(L, sorted(L)).
+  // We compute both to show the instructor both formulations
+  // and visually prove they give the same answer.
+  //
+  // lcsResult is always set together with result — they are
+  // always both null or both non-null at the same time.
+  // ----------------------------------------------------------
+  const [lcsResult, setLcsResult] = useState<LCSResult | null>(null);
 
   // ----------------------------------------------------------
   // handleRun  —  called by InputPanel when the user clicks "Run".
@@ -104,10 +120,26 @@ const App: React.FC = () => {
   //   expects an argument called "leds" that is an array of numbers.
   // ----------------------------------------------------------
   const handleRun = (leds: number[]) => {
-    // computeLIS runs the full Longest Increasing Subsequence DP.
-    // It returns a LISResult object with dp[], parent[], chosenLEDs, etc.
-    // See utils/lis.ts for the detailed algorithm explanation.
+    // ----------------------------------------------------------
+    // Run the direct LIS DP (O(n²) time, O(n) space).
+    // See utils/lis.ts — computeLIS() for the full explanation.
+    // ----------------------------------------------------------
     setResult(computeLIS(leds));
+
+    // ----------------------------------------------------------
+    // LIS = LCS(L, sorted(L)) — see COM336 Chapter 2, Dynamic Programming.
+    // We run LCS explicitly to show the instructor both formulations.
+    // The LCS length must equal the LIS maxLEDs value. If they differ,
+    // something is wrong with the algorithm.
+    //
+    // sorted = [...leds].sort((a, b) => a - b)
+    //   [...leds]  → spread into a new array (do NOT mutate the original)
+    //   .sort((a,b) => a-b) → numeric ascending sort
+    //   Default JS .sort() is lexicographic (would sort [10,2] as [10,2])
+    //   so we must pass the comparator (a,b) => a-b for correct numeric order.
+    // ----------------------------------------------------------
+    const sorted = [...leds].sort((a, b) => a - b);
+    setLcsResult(computeLCS(leds, sorted));
   };
 
   // ----------------------------------------------------------
@@ -133,7 +165,11 @@ const App: React.FC = () => {
   //   [2, 6, 3, 5, 4, 1] so the page is not blank on arrival.
   // ----------------------------------------------------------
   useEffect(() => {
-    setResult(computeLIS([2, 6, 3, 5, 4, 1]));
+    // Pre-load the project example so the page is not blank on arrival.
+    // We compute both LIS and LCS together — same as handleRun does.
+    const defaultLeds = [2, 6, 3, 5, 4, 1];
+    setResult(computeLIS(defaultLeds));
+    setLcsResult(computeLCS(defaultLeds, [...defaultLeds].sort((a, b) => a - b)));
   }, []); // <-- empty array = "run once on mount"
 
   // ----------------------------------------------------------
@@ -170,36 +206,62 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      {/* ---- Two-column layout ---- */}
+      {/*
+        ---- Two-column layout ----
+        Left col  : InputPanel (stays fixed as the user scrolls results)
+        Right col : All output in the order the instructor expects:
+                    1. ResultPanel  (answer + LCS match badge)
+                    2. LCSTable     (lecture LCS formulation — shown FIRST)
+                    3. Section divider
+                    4. DPTable      (direct LIS formulation)
+                    5. CircuitBoard (SVG visualisation)
+      */}
       <main className="main-grid">
 
-        {/* Left column: input form + result summary */}
+        {/* Left column: input form only */}
         <section className="left-col">
-          {/*
-            We pass "handleRun" as a prop to InputPanel.
-            A prop is how a parent component gives data or functions
-            to a child component — like passing arguments to a function.
-            InputPanel will call onRun(ledsArray) when the user clicks Run.
-          */}
           <InputPanel onRun={handleRun} />
-
-          {/*
-            {result && <ResultPanel result={result} />}
-            Short-circuit: if result is null this whole expression
-            evaluates to null and React renders nothing.
-            Once result is set (after running the algorithm), React
-            renders ResultPanel and passes the result object as a prop.
-          */}
-          {result && <ResultPanel result={result} />}
         </section>
 
-        {/* Right column: DP table + circuit board drawing */}
+        {/* Right column: all output panels in lecture order */}
         <section className="right-col">
-          {result && (
-            // The fragment <> lets us return two sibling elements
-            // without adding an extra <div> to the HTML.
+          {result && lcsResult && (
             <>
-              <DPTable      result={result} />
+              {/* 1 — ResultPanel: answer + chosen LEDs */}
+              <ResultPanel result={result} />
+
+              {/*
+                LCS match badge — visual proof that both formulations
+                agree on the answer. The instructor can see immediately
+                that LCS(L, sorted(L)) == LIS(L) for this input.
+
+                Per COM336 Chapter 2: LIS(L) = LCS(L, sorted(L)).
+                If these two numbers ever differ, there is a bug.
+              */}
+              <div className="lcs-match-badge">
+                LCS(L,&nbsp;sorted(L))&nbsp;=&nbsp;
+                <strong>{lcsResult.length}</strong>
+                &nbsp;✓&nbsp;matches&nbsp;LIS&nbsp;=&nbsp;
+                <strong>{result.maxLEDs}</strong>
+                &nbsp;— both formulations give the same answer
+              </div>
+
+              {/* 2 — LCSTable: the lecture LCS approach (shown before direct LIS) */}
+              <LCSTable result={lcsResult} />
+
+              {/*
+                Section divider — clearly separates the two DP formulations
+                so the instructor can see both independently.
+              */}
+              <div className="section-divider">
+                Both formulations above and below produce the same answer:&nbsp;
+                <strong>{lcsResult.length}</strong> LEDs
+              </div>
+
+              {/* 3 — DPTable: the direct LIS DP (O(n²), O(n) space) */}
+              <DPTable result={result} />
+
+              {/* 4 — CircuitBoard: SVG drawing of boards and wires */}
               <CircuitBoard result={result} />
             </>
           )}

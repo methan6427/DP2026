@@ -88,6 +88,15 @@ const PRESETS: TestCase[] = [
     leds: [3, 1, 4, 7, 5, 9, 2, 6, 8, 10],
     // LIS = 6. Chain: [1, 4, 5, 6, 8, 10] or similar.
   },
+  {
+    // Per COM336 Chapter 2 — this test case lets the instructor verify
+    // that LCS(L, sorted(L)) == LIS(L) on a non-trivial permutation.
+    // LIS = 4. Chain: [1, 2, 3, 5].
+    // LCS([4,1,6,2,7,3,5], [1,2,3,4,5,6,7]) = 4  ✓
+    label: "LCS Demo (n=7) — Ref Ch.2",
+    n: 7,
+    leds: [4, 1, 6, 2, 7, 3, 5],
+  },
 ];
 
 // ------------------------------------------------------------

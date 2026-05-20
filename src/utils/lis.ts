@@ -32,7 +32,7 @@
 // SPACE COMPLEXITY: O(n)   — two auxiliary arrays dp[] and parent[].
 // ============================================================
 
-import type { LISResult } from "../types";
+import type { LISResult, LCSResult } from "../types";
 
 /**
  * computeLIS
@@ -160,6 +160,175 @@ export function computeLIS(leds: number[]): LISResult {
   const chosenLEDs = chosenIndices.map((idx) => leds[idx]);
 
   return { leds, dp, parent, maxLEDs, chosenIndices, chosenLEDs };
+}
+
+// ============================================================
+// computeLCS
+//
+// Per COM336 Chapter 2 — LCS algorithm (Iyad Jaber, Algorithm Analysis)
+//
+// WHY WE RUN LCS HERE:
+//   The instructor teaches LCS as the primary DP example in Chapter 2.
+//   LIS(L) = LCS(L, sorted(L)) because:
+//     - sorted(L) is strictly increasing → any common subsequence of
+//       L and sorted(L) must also be increasing in L's order.
+//     - Therefore the longest such common subsequence IS the LIS of L.
+//   Running LCS explicitly lets the instructor see BOTH formulations
+//   and verify that they produce the same answer.
+//
+// SPACE COMPLEXITY — TWO LEVELS (important for grading):
+//   Computation : O(n) — only prev[] and curr[] are live at any time.
+//                        This is the "rolling row" optimisation the
+//                        instructor expects (one 1-D array, not a 2-D table).
+//   Display     : O(m·n) — we push every completed curr[] into rows[][]
+//                           and every bRow into bRows[][] so the UI can
+//                           render the full table and the backtrack path.
+//                           This is DISPLAY storage only, NOT part of the
+//                           algorithmic computation.
+//
+// TIME COMPLEXITY:  O(m·n) — two nested loops, each cell O(1).
+// ============================================================
+
+/**
+ * computeLCS
+ *
+ * @param x - First sequence  (the LED permutation L, 0-based).
+ * @param y - Second sequence (sorted copy of L, 0-based).
+ * @returns LCSResult — full c-table (for display), direction table (for
+ *          backtracking), LCS length, and the reconstructed LCS sequence.
+ *
+ * Time:  O(m·n)  where m = x.length, n = y.length.
+ * Space: O(n)    for computation (rolling rows prev[] / curr[]).
+ *        O(m·n)  for display storage (rows[][], bRows[][]).
+ */
+export function computeLCS(x: number[], y: number[]): LCSResult {
+  const m = x.length;
+  const n = y.length;
+
+  // ------------------------------------------------------------------
+  // BASE CASE — row 0 (c[0][j] = 0 for all j, per lecture recurrence).
+  //
+  // Per COM336 Chapter 2:
+  //   c[i][0] = 0   (empty prefix of x matched against any y → 0)
+  //   c[0][j] = 0   (any x matched against empty prefix of y → 0)
+  //
+  // prev[] represents c[i-1][*]. We start with i=0 → all zeros.
+  // ------------------------------------------------------------------
+  let prev: number[] = new Array(n + 1).fill(0);
+
+  // rows[0] = the all-zero base-case row. Stored for UI display.
+  // Space complexity note: rows[] accumulates O(m·n) data for display.
+  const rows: number[][] = [new Array(n + 1).fill(0)];
+
+  // bRows[0] = 'none' for every base-case cell (no direction needed).
+  const bRows: string[][] = [new Array(n + 1).fill("none")];
+
+  // ------------------------------------------------------------------
+  // MAIN LOOP — fill rows i = 1 .. m  (outer loop over x).
+  //
+  // Per COM336 Chapter 2 lecture pseudocode:
+  //   for i = 1 to m:
+  //     for j = 1 to n:
+  //       if x[i] == y[j]:        c[i][j] = c[i-1][j-1] + 1,  b='diag'
+  //       else if c[i][j-1] > c[i-1][j]:  c[i][j] = c[i][j-1], b='left'
+  //       else:                   c[i][j] = c[i-1][j],          b='up'
+  //
+  // Rolling row:
+  //   prev[] holds c[i-1][*] — the PREVIOUS row (already computed).
+  //   curr[] holds c[i][*]   — the CURRENT  row (being filled now).
+  //   After the inner loop we set prev = curr (rolling forward).
+  //   Only two O(n) arrays live in memory at any moment → O(n) compute space.
+  // ------------------------------------------------------------------
+  for (let i = 1; i <= m; i++) {
+
+    // curr[j] = c[i][j]; initialise col 0 to 0 (base case c[i][0] = 0).
+    const curr: number[] = new Array(n + 1).fill(0);
+
+    // Direction row for display and backtracking. Col 0 = 'none' (base case).
+    const bRow: string[] = new Array(n + 1).fill("none");
+
+    for (let j = 1; j <= n; j++) {
+      // ------------------------------------------------------------------
+      // x[i-1] and y[j-1] because arrays are 0-indexed in JS
+      // but the recurrence uses 1-indexed notation from the lecture.
+      // ------------------------------------------------------------------
+      if (x[i - 1] === y[j - 1]) {
+        // MATCH: the i-th element of x equals the j-th element of y.
+        // Per lecture: c[i][j] = c[i-1][j-1] + 1
+        // prev[j-1] is c[i-1][j-1] because prev holds the previous row.
+        curr[j] = prev[j - 1] + 1;
+        bRow[j] = "diag";   // ↖ diagonal — came from upper-left
+
+      } else if (curr[j - 1] > prev[j]) {
+        // LEFT wins: the best LCS for (x[1..i], y[1..j-1]) is longer.
+        // Per lecture: c[i][j] = c[i][j-1]
+        // curr[j-1] is already filled (inner loop left → right).
+        curr[j] = curr[j - 1];
+        bRow[j] = "left";   // ← came from the left cell
+
+      } else {
+        // UP wins (or tie → up per lecture convention).
+        // Per lecture: c[i][j] = c[i-1][j]
+        // prev[j] is c[i-1][j].
+        curr[j] = prev[j];
+        bRow[j] = "up";     // ↑ came from the cell above
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Store curr[] into rows[] for display BEFORE rolling.
+    // We spread [...curr] to make a COPY — if we stored curr directly,
+    // later mutations of curr would corrupt the saved display data.
+    // ------------------------------------------------------------------
+    rows.push([...curr]);
+    bRows.push(bRow);
+
+    // ------------------------------------------------------------------
+    // ROLL: curr becomes the new "previous" row for the next iteration.
+    // O(n) assignment — no allocation, just variable rebinding.
+    // After this line, prev points to the array we just filled,
+    // and the old prev is released to the garbage collector.
+    // ------------------------------------------------------------------
+    prev = curr;
+  }
+
+  // The LCS length lives at the bottom-right corner of the table.
+  // After the loop, prev IS the last row (row m), so prev[n] = c[m][n].
+  const lcsLength = prev[n];
+
+  // ------------------------------------------------------------------
+  // BACKTRACK — reconstruct the LCS sequence by following bRows.
+  //
+  // Per lecture (print_LCS procedure):
+  //   Start at (m, n).
+  //   'diag' → this cell is a match, include x[i-1] in the sequence,
+  //            move to (i-1, j-1).
+  //   'up'   → move to (i-1, j)  — best came from above.
+  //   'left' → move to (i, j-1) — best came from the left.
+  //   Stop when i = 0 or j = 0 (base case boundary).
+  //
+  // We use unshift() to prepend so the final array is in forward order.
+  // ------------------------------------------------------------------
+  const sequence: number[] = [];
+  let bi = m;
+  let bj = n;
+
+  while (bi > 0 && bj > 0) {
+    const dir = bRows[bi][bj];
+    if (dir === "diag") {
+      // x[bi-1] == y[bj-1]: this value is in the LCS.
+      sequence.unshift(x[bi - 1]);
+      bi--;
+      bj--;
+    } else if (dir === "up") {
+      bi--;
+    } else {
+      // "left"
+      bj--;
+    }
+  }
+
+  return { x, y, length: lcsLength, rows, bRows, sequence };
 }
 
 // ------------------------------------------------------------------
