@@ -8,7 +8,7 @@
 // ============================================================
 
 import { describe, it, expect } from "vitest";
-import { computeLIS, computeLISTable, generateRandomPermutation } from "../utils/lis";
+import { computeLIS, generateRandomPermutation } from "../utils/lis";
 
 // ── Helpers ─────────────────────────────────────────────────
 function isStrictlyIncreasing(arr: number[]): boolean {
@@ -112,7 +112,7 @@ describe("computeLIS", () => {
   // ------ Structural invariants (hold for every valid input) ------
   it("dp has no value less than 1", () => {
     const r = computeLIS([2, 6, 3, 5, 4, 1]);
-    expect(r.dp.every((v) => v >= 1)).toBe(true);
+    expect(r.dp.every((v: number) => v >= 1)).toBe(true);
   });
 
   it("max of dp[] equals maxLEDs", () => {
@@ -151,95 +151,6 @@ describe("computeLIS", () => {
   });
 });
 
-// ── computeLISTable ──────────────────────────────────────────
-describe("computeLISTable", () => {
-
-  // ------ Exact table checks -----------------------------------
-  it("x=[1,2] vs y=[1,2] — full dp-table", () => {
-    const r = computeLISTable([1, 2], [1, 2]);
-    expect(r.length).toBe(2);
-    expect(r.rows).toEqual([
-      [0, 0, 0],
-      [0, 1, 1],
-      [0, 1, 2],
-    ]);
-    expect(r.sequence).toEqual([1, 2]);
-  });
-
-  it("x=[1] vs y=[1] — minimal table", () => {
-    const r = computeLISTable([1], [1]);
-    expect(r.length).toBe(1);
-    expect(r.rows).toEqual([
-      [0, 0],
-      [0, 1],
-    ]);
-    expect(r.sequence).toEqual([1]);
-  });
-
-  it("x=[2,1] vs y=[1,2] — length 1 (no common increasing run)", () => {
-    const r = computeLISTable([2, 1], [1, 2]);
-    expect(r.length).toBe(1);
-    expect(r.sequence).toHaveLength(1);
-  });
-
-  // ------ Table shape ------------------------------------------
-  it("rows has (m+1) rows and each row has (n+1) columns", () => {
-    const x = [2, 6, 3, 5, 4, 1];
-    const y = [...x].sort((a, b) => a - b);
-    const r = computeLISTable(x, y);
-    expect(r.rows).toHaveLength(x.length + 1);
-    for (const row of r.rows) {
-      expect(row).toHaveLength(y.length + 1);
-    }
-  });
-
-  it("base-case row 0 is all zeros", () => {
-    const x = [2, 6, 3, 5, 4, 1];
-    const y = [...x].sort((a, b) => a - b);
-    const r = computeLISTable(x, y);
-    expect(r.rows[0].every((v) => v === 0)).toBe(true);
-  });
-
-  it("base-case column 0 of every row is 0", () => {
-    const x = [4, 1, 6, 2, 7, 3, 5];
-    const y = [...x].sort((a, b) => a - b);
-    const r = computeLISTable(x, y);
-    expect(r.rows.every((row) => row[0] === 0)).toBe(true);
-  });
-
-  // ------ sequence is an increasing subsequence of x -----------
-  it("LIS sequence is strictly increasing (it IS an increasing subsequence)", () => {
-    const x = [2, 6, 3, 5, 4, 1];
-    const y = [...x].sort((a, b) => a - b);
-    const r = computeLISTable(x, y);
-    expect(isStrictlyIncreasing(r.sequence)).toBe(true);
-  });
-
-  it("LIS sequence is a subsequence of x", () => {
-    const x = [4, 1, 6, 2, 7, 3, 5];
-    const y = [...x].sort((a, b) => a - b);
-    const r = computeLISTable(x, y);
-    expect(isSubsequenceOf(r.sequence, x)).toBe(true);
-  });
-
-  // ------ LIS table length == LIS length (the core invariant) --
-  it("LIS table length == LIS(L) for all 5 main test cases", () => {
-    const cases = [
-      [2, 6, 3, 5, 4, 1],          // LIS=3
-      [1, 2, 3, 4, 5],             // LIS=5
-      [5, 4, 3, 2, 1],             // LIS=1
-      [4, 1, 6, 2, 7, 3, 5],       // LIS=4
-      [7, 2, 9, 1, 8, 3, 10, 4, 6, 5], // LIS=4
-    ];
-    for (const leds of cases) {
-      const sorted = [...leds].sort((a, b) => a - b);
-      const lis = computeLIS(leds);
-      const lisTable = computeLISTable(leds, sorted);
-      expect(lisTable.length).toBe(lis.maxLEDs);
-    }
-  });
-});
-
 // ── generateRandomPermutation ────────────────────────────────
 describe("generateRandomPermutation", () => {
 
@@ -273,13 +184,5 @@ describe("generateRandomPermutation", () => {
     expect(r.maxLEDs).toBeLessThanOrEqual(perm.length);
     expect(isStrictlyIncreasing(r.chosenLEDs)).toBe(true);
     expect(isSubsequenceOf(r.chosenLEDs, perm)).toBe(true);
-  });
-
-  it("LIS table length == LIS(perm) for a random n=12 permutation", () => {
-    const perm = generateRandomPermutation(12);
-    const sorted = [...perm].sort((a, b) => a - b);
-    const lis = computeLIS(perm);
-    const lisTable = computeLISTable(perm, sorted);
-    expect(lisTable.length).toBe(lis.maxLEDs);
   });
 });

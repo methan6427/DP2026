@@ -4,14 +4,13 @@ import InputPanel   from "./components/InputPanel";
 import ResultPanel  from "./components/ResultPanel";
 import CircuitBoard from "./components/CircuitBoard";
 import LISTable     from "./components/LISTable";
-import { computeLIS, computeLISTable } from "./utils/lis";
-import type { LISResult, LISTableResult } from "./types";
+import { computeLIS } from "./utils/lis";
+import type { LISResult } from "./types";
 import "./App.css";
 
 const App: React.FC = () => {
 
-  const [lisResult,      setLisResult]      = useState<LISResult      | null>(null);
-  const [lisTableResult, setLisTableResult] = useState<LISTableResult | null>(null);
+  const [lisResult, setLisResult] = useState<LISResult | null>(null);
 
   // Switch to stacked layout when n > 10 (table becomes too wide for 3 columns)
   const isLarge = lisResult !== null && lisResult.leds.length > 10;
@@ -26,18 +25,15 @@ const App: React.FC = () => {
     return () => document.body.classList.remove("large-mode");
   }, [isLarge]);
 
-  // Run both algorithms when the user submits a valid LED array
+  // Run the LIS algorithm when the user submits a valid LED array
   const handleRun = (leds: number[]) => {
     setLisResult(computeLIS(leds));
-    const sorted = [...leds].sort((a, b) => a - b);
-    setLisTableResult(computeLISTable(leds, sorted));
   };
 
   // Pre-load the project example so the page is not blank on arrival
   useEffect(() => {
     const defaultLeds = [2, 6, 3, 5, 4, 1];
     setLisResult(computeLIS(defaultLeds));
-    setLisTableResult(computeLISTable(defaultLeds, [...defaultLeds].sort((a, b) => a - b)));
   }, []);
 
   return (
@@ -61,7 +57,7 @@ const App: React.FC = () => {
 
         {/* Centre column: LIS DP table */}
         <div className="lis-table-section">
-          {lisTableResult && <LISTable result={lisTableResult} />}
+          {lisResult && <LISTable result={lisResult} />}
         </div>
 
         {/* Right column: circuit board */}

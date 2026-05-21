@@ -28,26 +28,3 @@ export interface TestCase {
   n: number;
   leds: number[];
 }
-
-// Full output of computeLISTable() — the dp-table, direction table, and result sequence
-export interface LISTableResult {
-  // x = the original LED permutation (board L order)
-  x: number[];
-
-  // y = sorted(x) — the reference sequence
-  y: number[];
-
-  // LIS table length = LIS(x); must equal LISResult.maxLEDs for every valid input
-  length: number;
-
-  // rows[i][j] = dp[i][j] from the recurrence — stored for display (O(m·n))
-  // The algorithm itself only uses two 1-D arrays (O(n) space)
-  rows: number[][];
-
-  // bRows[i][j] = direction taken at cell (i,j)
-  // 'diag' = match (↖), 'up' = came from above (↑), 'left' = came from left (←), 'none' = base
-  bRows: string[][];
-
-  // The actual LIS values, backtracked from bRows — equals the LIS chain in sorted order
-  sequence: number[];
-}

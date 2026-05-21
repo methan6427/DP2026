@@ -338,17 +338,115 @@ body.large-mode .app-container {
   border: 1px solid transparent;
 }
 .lis-legend-path  { background: rgba(255,215,0,.15); border-color: var(--gold);  color: var(--gold); }
-.lis-legend-match { background: rgba(63,185,80,.12);  border-color: var(--green); color: var(--green); }
+.lis-legend-match { background: rgba(255,215,0,.25); border-color: var(--gold);  color: var(--gold); }
 .lis-legend-arrow { color: var(--text-dim); border-color: var(--border); }
+
+/* Result box — displays chosen LEDs and LIS length */
+.lis-result-box {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+.lis-result-label {
+  color: var(--text-dim);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lis-result-val {
+  font-family: monospace;
+  color: var(--green);
+  font-weight: 600;
+}
 
 /* The LIS dp table — fills available height */
 .table-wrapper {
   flex: 1;
   overflow: auto;
   min-height: 0;
-  display: flex;
-  align-items: stretch;
 }
+
+/* 1D LIS table */
+.lis-table-1d {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+.lis-table-1d th,
+.lis-table-1d td {
+  border: 1px solid var(--border);
+  text-align: center;
+  padding: 4px 6px;
+  height: 40px;
+  vertical-align: middle;
+  font-size: clamp(11px, 1.2vw, 14px);
+}
+
+/* Label column (Index, LED, dp[i]) */
+.lis-th-label {
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+/* Index headers (i=0, i=1, etc.) */
+.lis-th-index {
+  background: var(--surface2);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* LED value cells */
+.lis-cell-led {
+  background: var(--surface2);
+  color: var(--text);
+}
+.lis-cell-led .lis-cell-val {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Regular DP cell */
+.lis-cell {
+  position: relative;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+.lis-cell-val {
+  display: block;
+  line-height: 1;
+}
+
+/* Cells in the chosen chain — gold highlight */
+.lis-cell-chosen {
+  background: rgba(255, 215, 0, 0.2) !important;
+}
+.lis-cell-chosen .lis-cell-val {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* Maximum DP value — stronger highlight */
+.lis-cell-max {
+  background: rgba(255, 215, 0, 0.35) !important;
+}
+.lis-cell-max .lis-cell-val {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* 2D LIS table (keep old styles for backward compat if needed) */
 .lis-table {
   flex: 1;
   width: 100%;
@@ -375,17 +473,6 @@ body.large-mode .app-container {
 .lis-th-corner { font-size: clamp(9px, 1.2vw, 15px); padding: 2px 4px; }
 
 /* Regular cell */
-.lis-cell {
-  position: relative;
-  vertical-align: middle;
-  font-size: clamp(10px, 1.4vw, 18px);
-  font-weight: 600;
-}
-.lis-cell-val {
-  display: block;
-  color: var(--text);
-  line-height: 1;
-}
 .lis-cell-arrow {
   position: absolute;
   top: 2px;
