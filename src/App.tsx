@@ -3,15 +3,15 @@ import React, { useState, useEffect } from "react";
 import InputPanel   from "./components/InputPanel";
 import ResultPanel  from "./components/ResultPanel";
 import CircuitBoard from "./components/CircuitBoard";
-import LCSTable     from "./components/LCSTable";
-import { computeLIS, computeLCS } from "./utils/lis";
-import type { LISResult, LCSResult } from "./types";
+import LISTable     from "./components/LISTable";
+import { computeLIS, computeLISTable } from "./utils/lis";
+import type { LISResult, LISTableResult } from "./types";
 import "./App.css";
 
 const App: React.FC = () => {
 
-  const [lisResult, setLisResult] = useState<LISResult | null>(null);
-  const [lcsResult, setLcsResult] = useState<LCSResult | null>(null);
+  const [lisResult,      setLisResult]      = useState<LISResult      | null>(null);
+  const [lisTableResult, setLisTableResult] = useState<LISTableResult | null>(null);
 
   // Switch to stacked layout when n > 10 (table becomes too wide for 3 columns)
   const isLarge = lisResult !== null && lisResult.leds.length > 10;
@@ -30,14 +30,14 @@ const App: React.FC = () => {
   const handleRun = (leds: number[]) => {
     setLisResult(computeLIS(leds));
     const sorted = [...leds].sort((a, b) => a - b);
-    setLcsResult(computeLCS(leds, sorted));
+    setLisTableResult(computeLISTable(leds, sorted));
   };
 
   // Pre-load the project example so the page is not blank on arrival
   useEffect(() => {
     const defaultLeds = [2, 6, 3, 5, 4, 1];
     setLisResult(computeLIS(defaultLeds));
-    setLcsResult(computeLCS(defaultLeds, [...defaultLeds].sort((a, b) => a - b)));
+    setLisTableResult(computeLISTable(defaultLeds, [...defaultLeds].sort((a, b) => a - b)));
   }, []);
 
   return (
@@ -61,7 +61,7 @@ const App: React.FC = () => {
 
         {/* Centre column: LIS DP table */}
         <div className="lis-table-section">
-          {lcsResult && <LCSTable result={lcsResult} />}
+          {lisTableResult && <LISTable result={lisTableResult} />}
         </div>
 
         {/* Right column: circuit board */}

@@ -1,14 +1,14 @@
 // ============================================================
 // src/tests/lis.test.ts
 //
-// Automated test suite for computeLIS, computeLCS, and
+// Automated test suite for computeLIS, computeLISTable, and
 // generateRandomPermutation (utils/lis.ts).
 //
 // Runner: Vitest (vitest run)
 // ============================================================
 
 import { describe, it, expect } from "vitest";
-import { computeLIS, computeLCS, generateRandomPermutation } from "../utils/lis";
+import { computeLIS, computeLISTable, generateRandomPermutation } from "../utils/lis";
 
 // ── Helpers ─────────────────────────────────────────────────
 function isStrictlyIncreasing(arr: number[]): boolean {
@@ -86,7 +86,7 @@ describe("computeLIS", () => {
     expect(computeLIS([7, 2, 9, 1, 8, 3, 10, 4, 6, 5]).maxLEDs).toBe(4);
   });
 
-  it("[4,1,6,2,7,3,5] (LCS demo n=7) → maxLEDs = 4", () => {
+  it("[4,1,6,2,7,3,5] (DP demo n=7) → maxLEDs = 4", () => {
     expect(computeLIS([4, 1, 6, 2, 7, 3, 5]).maxLEDs).toBe(4);
   });
 
@@ -151,12 +151,12 @@ describe("computeLIS", () => {
   });
 });
 
-// ── computeLCS ───────────────────────────────────────────────
-describe("computeLCS", () => {
+// ── computeLISTable ──────────────────────────────────────────
+describe("computeLISTable", () => {
 
   // ------ Exact table checks -----------------------------------
-  it("x=[1,2] vs y=[1,2] — full c-table", () => {
-    const r = computeLCS([1, 2], [1, 2]);
+  it("x=[1,2] vs y=[1,2] — full dp-table", () => {
+    const r = computeLISTable([1, 2], [1, 2]);
     expect(r.length).toBe(2);
     expect(r.rows).toEqual([
       [0, 0, 0],
@@ -167,7 +167,7 @@ describe("computeLCS", () => {
   });
 
   it("x=[1] vs y=[1] — minimal table", () => {
-    const r = computeLCS([1], [1]);
+    const r = computeLISTable([1], [1]);
     expect(r.length).toBe(1);
     expect(r.rows).toEqual([
       [0, 0],
@@ -177,7 +177,7 @@ describe("computeLCS", () => {
   });
 
   it("x=[2,1] vs y=[1,2] — length 1 (no common increasing run)", () => {
-    const r = computeLCS([2, 1], [1, 2]);
+    const r = computeLISTable([2, 1], [1, 2]);
     expect(r.length).toBe(1);
     expect(r.sequence).toHaveLength(1);
   });
@@ -186,7 +186,7 @@ describe("computeLCS", () => {
   it("rows has (m+1) rows and each row has (n+1) columns", () => {
     const x = [2, 6, 3, 5, 4, 1];
     const y = [...x].sort((a, b) => a - b);
-    const r = computeLCS(x, y);
+    const r = computeLISTable(x, y);
     expect(r.rows).toHaveLength(x.length + 1);
     for (const row of r.rows) {
       expect(row).toHaveLength(y.length + 1);
@@ -196,34 +196,34 @@ describe("computeLCS", () => {
   it("base-case row 0 is all zeros", () => {
     const x = [2, 6, 3, 5, 4, 1];
     const y = [...x].sort((a, b) => a - b);
-    const r = computeLCS(x, y);
+    const r = computeLISTable(x, y);
     expect(r.rows[0].every((v) => v === 0)).toBe(true);
   });
 
   it("base-case column 0 of every row is 0", () => {
     const x = [4, 1, 6, 2, 7, 3, 5];
     const y = [...x].sort((a, b) => a - b);
-    const r = computeLCS(x, y);
+    const r = computeLISTable(x, y);
     expect(r.rows.every((row) => row[0] === 0)).toBe(true);
   });
 
   // ------ sequence is an increasing subsequence of x -----------
-  it("LCS sequence is strictly increasing (it IS an increasing subsequence)", () => {
+  it("LIS sequence is strictly increasing (it IS an increasing subsequence)", () => {
     const x = [2, 6, 3, 5, 4, 1];
     const y = [...x].sort((a, b) => a - b);
-    const r = computeLCS(x, y);
+    const r = computeLISTable(x, y);
     expect(isStrictlyIncreasing(r.sequence)).toBe(true);
   });
 
-  it("LCS sequence is a subsequence of x", () => {
+  it("LIS sequence is a subsequence of x", () => {
     const x = [4, 1, 6, 2, 7, 3, 5];
     const y = [...x].sort((a, b) => a - b);
-    const r = computeLCS(x, y);
+    const r = computeLISTable(x, y);
     expect(isSubsequenceOf(r.sequence, x)).toBe(true);
   });
 
-  // ------ LCS length == LIS length (the core invariant) --------
-  it("LCS(L, sorted(L)) == LIS(L) for all 5 main test cases", () => {
+  // ------ LIS table length == LIS length (the core invariant) --
+  it("LIS table length == LIS(L) for all 5 main test cases", () => {
     const cases = [
       [2, 6, 3, 5, 4, 1],          // LIS=3
       [1, 2, 3, 4, 5],             // LIS=5
@@ -234,8 +234,8 @@ describe("computeLCS", () => {
     for (const leds of cases) {
       const sorted = [...leds].sort((a, b) => a - b);
       const lis = computeLIS(leds);
-      const lcs = computeLCS(leds, sorted);
-      expect(lcs.length).toBe(lis.maxLEDs);
+      const lisTable = computeLISTable(leds, sorted);
+      expect(lisTable.length).toBe(lis.maxLEDs);
     }
   });
 });
@@ -275,11 +275,11 @@ describe("generateRandomPermutation", () => {
     expect(isSubsequenceOf(r.chosenLEDs, perm)).toBe(true);
   });
 
-  it("LCS(perm, sorted) == LIS(perm) for a random n=12 permutation", () => {
+  it("LIS table length == LIS(perm) for a random n=12 permutation", () => {
     const perm = generateRandomPermutation(12);
     const sorted = [...perm].sort((a, b) => a - b);
     const lis = computeLIS(perm);
-    const lcs = computeLCS(perm, sorted);
-    expect(lcs.length).toBe(lis.maxLEDs);
+    const lisTable = computeLISTable(perm, sorted);
+    expect(lisTable.length).toBe(lis.maxLEDs);
   });
 });

@@ -36,10 +36,10 @@ const PRESETS: TestCase[] = [
     // LIS = 6
   },
   {
-    label: "LCS Demo (n=7) — Ref Ch.2",
+    label: "LIS Demo (n=7) — Ref Ch.2",
     n: 7,
     leds: [4, 1, 6, 2, 7, 3, 5],
-    // LIS = 4, LCS([4,1,6,2,7,3,5], [1,2,3,4,5,6,7]) = 4 ✓
+    // LIS = 4, LIS table([4,1,6,2,7,3,5], [1,2,3,4,5,6,7]) = 4 ✓
   },
 ];
 

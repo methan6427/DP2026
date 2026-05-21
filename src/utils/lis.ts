@@ -10,7 +10,7 @@
 // So a crossing-free set of wires = an increasing subsequence of L.
 // Maximum non-crossing connections = LIS length of L.
 
-import type { LISResult, LCSResult } from "../types";
+import type { LISResult, LISTableResult } from "../types";
 
 /**
  * computeLIS — O(n²) time, O(n) space.
@@ -67,18 +67,18 @@ export function computeLIS(leds: number[]): LISResult {
 }
 
 /**
- * computeLCS — O(m·n) time, O(n) computation space, O(m·n) display space.
+ * computeLISTable — O(m·n) time, O(n) computation space, O(m·n) display space.
  *
- * Runs LCS(x, y) where y = sorted(x), proving LIS(x) = LCS(x, sorted(x)).
+ * Fills the dp[i][j] table where y = sorted(x), proving LIS(x) = LIS table length.
  * Uses rolling rows: only prev[] and curr[] are live at any time (O(n)).
  * All completed rows are saved into rows[][] and bRows[][] for display.
  */
-export function computeLCS(x: number[], y: number[]): LCSResult {
+export function computeLISTable(x: number[], y: number[]): LISTableResult {
   const m = x.length;
   const n = y.length;
 
-  // Base case: c[0][j] = 0 for all j (empty x prefix vs any y)
-  // prev[] represents c[i-1][*]; start with i=0 so all values are 0
+  // Base case: dp[0][j] = 0 for all j (empty x prefix vs any y)
+  // prev[] represents dp[i-1][*]; start with i=0 so all values are 0
   let prev: number[] = new Array(n + 1).fill(0);
 
   // rows[0] = base-case all-zero row — saved for display
@@ -89,24 +89,24 @@ export function computeLCS(x: number[], y: number[]): LCSResult {
   // Fill rows i = 1 to m
   for (let i = 1; i <= m; i++) {
 
-    // curr[j] = c[i][j]; column 0 is always 0 (base case c[i][0] = 0)
+    // curr[j] = dp[i][j]; column 0 is always 0 (base case dp[i][0] = 0)
     const curr: number[] = new Array(n + 1).fill(0);
     const bRow: string[] = new Array(n + 1).fill("none");
 
     for (let j = 1; j <= n; j++) {
       // x[i-1] and y[j-1]: arrays are 0-indexed, recurrence uses 1-indexed notation
       if (x[i - 1] === y[j - 1]) {
-        // Match: c[i][j] = c[i-1][j-1] + 1
+        // Match: dp[i][j] = dp[i-1][j-1] + 1
         curr[j] = prev[j - 1] + 1;
         bRow[j] = "diag";
 
       } else if (curr[j - 1] > prev[j]) {
-        // Left wins: c[i][j] = c[i][j-1]
+        // Left wins: dp[i][j] = dp[i][j-1]
         curr[j] = curr[j - 1];
         bRow[j] = "left";
 
       } else {
-        // Up wins (tie also goes up, following lecture convention): c[i][j] = c[i-1][j]
+        // Up wins (tie also goes up, following lecture convention): dp[i][j] = dp[i-1][j]
         curr[j] = prev[j];
         bRow[j] = "up";
       }
@@ -120,10 +120,10 @@ export function computeLCS(x: number[], y: number[]): LCSResult {
     prev = curr;
   }
 
-  // LCS length = bottom-right corner = c[m][n]
-  const lcsLength = prev[n];
+  // LIS length = bottom-right corner = dp[m][n]
+  const lisLength = prev[n];
 
-  // Backtrack from (m, n) to reconstruct the LCS sequence
+  // Backtrack from (m, n) to reconstruct the LIS sequence
   // 'diag' = match: include x[i-1] in the result and move diagonally
   // unshift() prepends so the sequence is in forward order
   const sequence: number[] = [];
@@ -143,7 +143,7 @@ export function computeLCS(x: number[], y: number[]): LCSResult {
     }
   }
 
-  return { x, y, length: lcsLength, rows, bRows, sequence };
+  return { x, y, length: lisLength, rows, bRows, sequence };
 }
 
 // Fisher-Yates shuffle — build [1..n] then swap each position randomly

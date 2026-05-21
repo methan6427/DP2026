@@ -29,18 +29,18 @@ export interface TestCase {
   leds: number[];
 }
 
-// Full output of computeLCS() — the c-table, direction table, and result sequence
-export interface LCSResult {
+// Full output of computeLISTable() — the dp-table, direction table, and result sequence
+export interface LISTableResult {
   // x = the original LED permutation (board L order)
   x: number[];
 
-  // y = sorted(x) — the reference sequence for LCS
+  // y = sorted(x) — the reference sequence
   y: number[];
 
-  // LCS length = LIS(x); must equal LISResult.maxLEDs for every valid input
+  // LIS table length = LIS(x); must equal LISResult.maxLEDs for every valid input
   length: number;
 
-  // rows[i][j] = c[i][j] from the recurrence — stored for display (O(m·n))
+  // rows[i][j] = dp[i][j] from the recurrence — stored for display (O(m·n))
   // The algorithm itself only uses two 1-D arrays (O(n) space)
   rows: number[][];
 
@@ -48,6 +48,6 @@ export interface LCSResult {
   // 'diag' = match (↖), 'up' = came from above (↑), 'left' = came from left (←), 'none' = base
   bRows: string[][];
 
-  // The actual LCS values, backtracked from bRows — equals the LIS chain in sorted order
+  // The actual LIS values, backtracked from bRows — equals the LIS chain in sorted order
   sequence: number[];
 }

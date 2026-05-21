@@ -1,9 +1,9 @@
-// Renders the full LIS dp table — proves LIS(L) = LCS(L, sorted(L))
+// Renders the full LIS dp table — proves LIS(L) = LIS table length
 import React, { useMemo } from "react";
-import type { LCSResult } from "../types";
+import type { LISTableResult } from "../types";
 
 interface Props {
-  result: LCSResult;
+  result: LISTableResult;
 }
 
 // Direction arrows matching the standard lecture notation
@@ -14,9 +14,8 @@ const ARROW: Record<string, string> = {
   none: "",
 };
 
-const LCSTable: React.FC<Props> = ({ result }) => {
+const LISTable: React.FC<Props> = ({ result }) => {
 
-  // x = original LED array, y = sorted copy
   const { x, y, rows, bRows, sequence, length } = result;
   const m = x.length;
   const n = y.length;
@@ -90,7 +89,6 @@ const LCSTable: React.FC<Props> = ({ result }) => {
       <div className="table-wrapper">
         <table className="lis-table">
 
-          {/* Column headers: blank corner, "0" base column, then sorted(L) values */}
           <thead>
             <tr>
               <th className="lis-th-corner"></th>
@@ -104,18 +102,14 @@ const LCSTable: React.FC<Props> = ({ result }) => {
           <tbody>
             {rows.map((row, i) => (
               <tr key={i}>
-
-                {/* Row header: "0" for base row, L[i-1] for data rows */}
                 <th className="lis-th-x">
                   {i === 0 ? "0" : x[i - 1]}
                 </th>
-
                 {row.map((val, j) => {
                   const onPath  = pathSet.has(`${i},${j}`);
                   const isMatch = i > 0 && j > 0 && matchSet.has(`${i},${j}`);
                   const arrow   = ARROW[bRows[i][j]] ?? "";
 
-                  // Gold = on the backtrack path; green = match cell; default = neither
                   const cellClass = onPath
                     ? "lis-cell lis-cell-path"
                     : isMatch
@@ -141,4 +135,4 @@ const LCSTable: React.FC<Props> = ({ result }) => {
   );
 };
 
-export default LCSTable;
+export default LISTable;
